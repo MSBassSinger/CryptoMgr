@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoMgr", "CryptoMgr\CryptoMgr.csproj", "{AEE0139C-3395-40FD-BFD8-8E98E09D9446}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoMgrTest", "CryptoMgrTest\CryptoMgrTest.csproj", "{8C29FD7A-4E6C-4C56-AD02-C93F21FAE6F0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AEE0139C-3395-40FD-BFD8-8E98E09D9446}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE0139C-3395-40FD-BFD8-8E98E09D9446}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE0139C-3395-40FD-BFD8-8E98E09D9446}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE0139C-3395-40FD-BFD8-8E98E09D9446}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C29FD7A-4E6C-4C56-AD02-C93F21FAE6F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C29FD7A-4E6C-4C56-AD02-C93F21FAE6F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C29FD7A-4E6C-4C56-AD02-C93F21FAE6F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C29FD7A-4E6C-4C56-AD02-C93F21FAE6F0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {272E5B3E-D53A-42B4-A7CE-9D9BBCD78C41}
+	EndGlobalSection
+EndGlobal
