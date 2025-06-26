@@ -3,17 +3,22 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Aes = System.Security.Cryptography.Aes;
 
 namespace Jeff.Jones.CryptoMgr
 {
     /// <summary>
-    /// Provides methods for encrypting and decrypting data using AES encryption, as well as hashing data using SHA-512.
+    /// Provides asynchronous cryptographic operations, including AES encryption/decryption,  SHA-512 hashing, and
+    /// object serialization/deserialization.
     /// </summary>
-    /// <remarks>The <see cref="Crypto"/> class is designed to facilitate secure data handling by providing
-    /// AES encryption and decryption methods,  along with SHA-512 hashing functionality. It supports customizable
-    /// initialization vectors (IVs) and private keys for encryption. The class also implements <see
-    /// cref="IDisposable"/> to ensure proper cleanup of resources.</remarks>
-    public class Crypto
+    /// <remarks>This class supports both synchronous and asynchronous disposal patterns to ensure proper 
+    /// cleanup of resources. It is designed to handle cryptographic operations securely, using  AES encryption with a
+    /// specified private key and initialization vector (IV). The class  also provides methods for hashing and
+    /// serialization/deserialization of objects. <para> Typical usage involves creating an instance of <see
+    /// cref="CryptoAsync"/> with a private  key and IV, then calling methods such as <see
+    /// cref="EncryptObjectAESAsync{T}"/> or  <see cref="DecryptObjectAESAsync{T}"/> for encryption and decryption
+    /// operations. </para></remarks>
+    public class CryptoAsync : IDisposable, IAsyncDisposable
     {
         // Initialization vector (IV); this can differ between encryption/decryption calls using the same private key.
         // When an IV is used only once, it is also called a "nonce" (number used once).
@@ -35,10 +40,8 @@ namespace Jeff.Jones.CryptoMgr
         /// <param name="privateKey">Typically 32 characters long (32 characters x 8 bits/character = 256 bits)</param>
         /// <param name="iv">Typically 16 characters</param>
         /// <param name="cipherMode">CBC is the default, and the most commonly used.</param>
-        public Crypto(String privateKey, String iv, CipherMode cipherMode = CipherMode.CBC)
+        public CryptoAsync(String privateKey, String iv, CipherMode cipherMode = CipherMode.CBC)
         {
-
-
             try
             {
                 m_PrivateKey = privateKey;
@@ -73,13 +76,16 @@ namespace Jeff.Jones.CryptoMgr
         /// <typeparam name="T">The type of the object to encrypt.</typeparam>
         /// <param name="objectToEncrypt">The object to encrypt. Cannot be <see langword="null"/>.</param>
         /// <returns>A string containing the AES-encrypted representation of the object.</returns>
-        public String EncryptObjectAES<T>(T objectToEncrypt)
+        public async Task<String> EncryptObjectAESAsync<T>(T objectToEncrypt)
         {
             if (objectToEncrypt == null)
             {
                 ArgumentNullException exArg = new ArgumentNullException(CryptoResources.ENCRYPT_EMPTY_MSG);
                 throw exArg;
             }
+
+            MemoryStream stream = default!;
+            StreamReader reader = default!;
 
             String strReturn = "";                 // Encrypted string to return 
 
@@ -92,9 +98,17 @@ namespace Jeff.Jones.CryptoMgr
                     WriteIndented = true
                 };
 
-                String serializedObject = System.Text.Json.JsonSerializer.Serialize<T>(objectToEncrypt, jsonOptions);
+                stream = new MemoryStream();
 
-                strReturn = EncryptStringAES(serializedObject);
+                await JsonSerializer.SerializeAsync<T>(stream, objectToEncrypt, jsonOptions);
+
+                stream.Position = 0;
+
+                reader = new StreamReader(stream);
+
+                String serializedObject = await reader.ReadToEndAsync();
+
+                strReturn = await EncryptStringAESAsync(serializedObject);
 
             }  // END try
             catch (NotSupportedException exNotSupported)
@@ -112,6 +126,19 @@ namespace Jeff.Jones.CryptoMgr
             }
             finally
             {
+                if (reader != null)
+                {
+                    reader.Close();
+                    reader.Dispose();
+                    reader = null;
+                }
+
+                if (stream != null)
+                {
+                    stream.Close();
+                    stream.Dispose();
+                    stream = null;
+                }
             }
 
             return strReturn;
@@ -129,7 +156,7 @@ namespace Jeff.Jones.CryptoMgr
         /// <typeparam name="T">The type of the object to deserialize the decrypted string into.</typeparam>
         /// <param name="strEncryptedText">The AES-encrypted string to decrypt. Cannot be null, empty, or whitespace.</param>
         /// <returns>An object of type <typeparamref name="T"/> deserialized from the decrypted string.</returns>
-        public T DecryptObjectAES<T>(String strEncryptedText)
+        public async Task<T> DecryptObjectAESAsync<T>(String strEncryptedText)
         {
             if (String.IsNullOrWhiteSpace(strEncryptedText))
             {
@@ -137,7 +164,9 @@ namespace Jeff.Jones.CryptoMgr
                 throw exArg;
             }
 
-            T objReturn = default;
+            T objReturn = default!;
+
+            MemoryStream stream = default!;
 
             try
             {
@@ -151,9 +180,11 @@ namespace Jeff.Jones.CryptoMgr
                     NumberHandling = JsonNumberHandling.AllowReadingFromString
                 };
 
-                String serializedObject = DecryptStringAES(strEncryptedText);
+                String decryptedString = await DecryptStringAESAsync(strEncryptedText);
 
-                objReturn = JsonSerializer.Deserialize<T>(serializedObject, jsonOptions);
+                stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(decryptedString));
+
+                objReturn = await JsonSerializer.DeserializeAsync<T>(stream, jsonOptions);
 
             }  // END try
             catch (NotSupportedException exNotSupported)
@@ -173,6 +204,12 @@ namespace Jeff.Jones.CryptoMgr
             finally
             {
 
+                if (stream != null)
+                {
+                    stream.Close();
+                    stream.Dispose();
+                    stream = null;
+                }
             }
 
             return objReturn;
@@ -183,11 +220,10 @@ namespace Jeff.Jones.CryptoMgr
         /// DecryptStringAES(). Block size is 128 (bits) for the IV value, which is 16 characters.
         /// </summary> 
         /// <param name="strStringToEncrypt">The text to encrypt.</param> 
-        public String EncryptStringAES(String strStringToEncrypt)
+        public async Task<String> EncryptStringAESAsync(String strStringToEncrypt)
         {
             if (String.IsNullOrWhiteSpace(strStringToEncrypt))
             {
-
                 ArgumentNullException exArg = new ArgumentNullException(CryptoResources.ENCRYPT_EMPTY_MSG);
 
                 throw exArg;
@@ -208,13 +244,14 @@ namespace Jeff.Jones.CryptoMgr
                 ICryptoTransform objEncryption = objAES.CreateEncryptor(objAES.Key, objAES.IV);
 
                 memorySteam = new MemoryStream();
+
                 cryptoStream = new CryptoStream(memorySteam, objEncryption, CryptoStreamMode.Write);
 
                 Byte[] bytesToEncrypt = Encoding.UTF8.GetBytes(strStringToEncrypt);
 
-                cryptoStream.Write(bytesToEncrypt, 0, bytesToEncrypt.Length);
+                await cryptoStream.WriteAsync(bytesToEncrypt, 0, bytesToEncrypt.Length);
 
-                cryptoStream.FlushFinalBlock();
+                await cryptoStream.FlushFinalBlockAsync();
 
                 Byte[] results = memorySteam.ToArray();
 
@@ -270,7 +307,7 @@ namespace Jeff.Jones.CryptoMgr
         /// EncryptStringAES(). 
         /// </summary> 
         /// <param name="strEncryptedText">The text to decrypt.</param> 
-        public String DecryptStringAES(String strEncryptedText)
+        public async Task<String> DecryptStringAESAsync(String strEncryptedText)
         {
 
             if (String.IsNullOrWhiteSpace(strEncryptedText))
@@ -302,7 +339,7 @@ namespace Jeff.Jones.CryptoMgr
                 cryptoStream = new CryptoStream(memorySteam, objDecryption, CryptoStreamMode.Read);
 
                 streamReader = new StreamReader(cryptoStream);
-                strReturn = streamReader.ReadToEnd();
+                strReturn = await streamReader.ReadToEndAsync();
 
             }  // END try
             catch (Exception exUnhandled)
@@ -339,7 +376,6 @@ namespace Jeff.Jones.CryptoMgr
                     memorySteam = null;
                 }
 
-
                 if (objAES != null)
                 {
                     objAES.Clear();
@@ -350,17 +386,19 @@ namespace Jeff.Jones.CryptoMgr
 
             return strReturn;
 
-        }  // END public String DecryptStringAES(String strEncryptedText)
+        }  // END public async Task<String> DecryptStringAESAsync(String strEncryptedText)
 
         /// <summary>
-        /// Computes the SHA-512 hash of the specified object.
+        /// Computes the SHA-512 hash of the specified object after serializing it to JSON.
         /// </summary>
-        /// <remarks>The method serializes the provided object using JSON serialization before computing
-        /// the hash. Ensure that the object is serializable and does not contain circular references.</remarks>
+        /// <remarks>The method serializes the provided object to a JSON string using <see
+        /// cref="System.Text.Json.JsonSerializer"/>,  then computes the SHA-512 hash of the serialized string. The JSON
+        /// serialization options include support for  trailing commas, number handling, and indented
+        /// formatting.</remarks>
         /// <typeparam name="T">The type of the object to hash.</typeparam>
         /// <param name="objectToHash">The object to compute the hash for. Cannot be <see langword="null"/>.</param>
-        /// <returns>A string representation of the SHA-512 hash of the serialized object.</returns>
-        public String GetObjectSHA512Hash<T>(T objectToHash)
+        /// <returns>A string representing the SHA-512 hash of the serialized JSON representation of the object.</returns>
+        public async Task<String> GetObjectSHA512HashAsync<T>(T objectToHash)
         {
             if (objectToHash == null)
             {
@@ -369,6 +407,9 @@ namespace Jeff.Jones.CryptoMgr
             }
 
             String strReturn = "";                 // Encrypted string to return 
+
+            MemoryStream stream = default!;
+            StreamReader reader = default!;
 
             try
             {
@@ -379,9 +420,17 @@ namespace Jeff.Jones.CryptoMgr
                     WriteIndented = true
                 };
 
-                String serializedObject = System.Text.Json.JsonSerializer.Serialize<T>(objectToHash, jsonOptions);
+                stream = new MemoryStream();
 
-                strReturn = GetSHA512Hash(serializedObject);
+                await System.Text.Json.JsonSerializer.SerializeAsync<T>(stream, objectToHash, jsonOptions);
+
+                stream.Position = 0;
+
+                reader = new StreamReader(stream);
+
+                String serializedObject = await reader.ReadToEndAsync();
+
+                strReturn = await GetSHA512HashAsync(serializedObject);
 
             }  // END try
             catch (Exception exUnhandled)
@@ -391,22 +440,36 @@ namespace Jeff.Jones.CryptoMgr
             }
             finally
             {
+                if (reader != null)
+                {
+                    reader.Close();
+                    reader.Dispose();
+                    reader = null;
+                }
 
+                if (stream != null)
+                {
+                    stream.Close();
+                    stream.Dispose();
+                    stream = null;
+                }
             }
             return strReturn;
-        }  // END public String GetObjectSHA512Hash<T>(T objectToHash)
+        }
 
         /// <summary>
-        /// This function takes a value you want hashed and hashes it uses SHA-512 for strength.  
+        /// This function takes a value you want hashed and hashes it using SHA-512 for strength.  
         /// </summary>
         /// <param name="stringToHash">This is the value, such as a password.  It will usually be the same over a number of instances on multiple machines.</param>
         /// <returns>The value returned is the hash string in Base 64</returns>
-        public String GetSHA512Hash(String stringToHash)
+        public async Task<String> GetSHA512HashAsync(String stringToHash)
         {
 
             String retVal = "";
 
             SHA512 hasher = null;
+
+            MemoryStream stream = default!;
 
             try
             {
@@ -414,7 +477,9 @@ namespace Jeff.Jones.CryptoMgr
 
                 hasher = SHA512.Create();
 
-                Byte[] aryHash = hasher.ComputeHash(aryStringToHash);
+                stream = new MemoryStream(aryStringToHash);
+
+                Byte[] aryHash = await hasher.ComputeHashAsync(stream);
 
                 retVal = BitConverter.ToString(aryHash).Replace("-", "").ToLowerInvariant();
 
@@ -428,6 +493,13 @@ namespace Jeff.Jones.CryptoMgr
             } // END catch
             finally
             {
+                if (stream != null)
+                {
+                    stream.Close();
+                    stream.Dispose();
+                    stream = null;
+                }
+
                 if (hasher != null)
                 {
                     hasher.Clear();
@@ -442,10 +514,10 @@ namespace Jeff.Jones.CryptoMgr
 
             return retVal;
 
-        }  // END public String GetSHA512Hash(String stringToHash)
+        }
 
 
-        #region IDisposable Implementation
+        #region IDisposable, IDisposableAsync Implementation
 
         /// <summary>
         /// Implement the IDisposable.Dispose() method
@@ -494,7 +566,7 @@ namespace Jeff.Jones.CryptoMgr
         /// There are times when the GC will fail to call Finalize, which is why it is up to 
         /// the developer to call Dispose() from the consumer Object.
         /// </summary>
-        ~Crypto()
+        ~CryptoAsync()
         {
             // Call Dispose indicating that this is not coming from the public
             // dispose method.
@@ -505,7 +577,7 @@ namespace Jeff.Jones.CryptoMgr
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">the disposing parameter is a Boolean that indicates whether the method call comes from a Dispose method (its value is true) or from a finalizer (its value is false)</param>
-        protected virtual void Dispose(bool disposing)
+        protected virtual void Dispose(Boolean disposing)
         {
 
             try
@@ -522,7 +594,7 @@ namespace Jeff.Jones.CryptoMgr
                         //if (someDisposableObjectWithAnEventHandler != null)
                         //{                 
                         //	m_objWithAnEventHandler.SomeEvent -= someDelegate;
-                        //	m_objtWithAnEventHandler.Dispose();
+                        //	m_objWithAnEventHandler.Dispose();
                         //	m_objWithAnEventHandler = null;
                         //}
 
@@ -567,7 +639,28 @@ namespace Jeff.Jones.CryptoMgr
 
         }
 
-        #endregion IDisposable Implementation
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsyncCore().ConfigureAwait(false);
+
+            Dispose(false);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected virtual async ValueTask DisposeAsyncCore()
+        {
+            // Make async cleanup call here e.g. await Database.CleanupAsync();
+        }
+
+        #endregion IDisposable, IDisposableAsync Implementation
 
     }
 }

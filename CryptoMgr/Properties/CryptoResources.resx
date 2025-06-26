@@ -129,6 +129,10 @@
     <value>Cannot decrypt an empty or null string.</value>
     <comment>Cannot decrypt an empty or null string.</comment>
   </data>
+  <data name="DECRYPT_NONSERIALIZABLE_OBJECT" xml:space="preserve">
+    <value>The object type is not serializable, and thus cannot be decrypted and instantiated.</value>
+    <comment>The object type is not serializable, and thus cannot be decrypted and instantiated.</comment>
+  </data>
   <data name="DECRYPT_UNHANDLED_MSG" xml:space="preserve">
     <value>Encountered an unexpected problem while decrypting a string.</value>
     <comment>Encountered an unexpected problem while decrypting a string.</comment>
@@ -140,6 +144,10 @@
   <data name="ENCRYPT_EMPTY_MSG" xml:space="preserve">
     <value>Cannot encrypt an empty or null string.</value>
     <comment>Cannot encrypt an empty or null string.</comment>
+  </data>
+  <data name="ENCRYPT_NONSERIALIZABLE_OBJECT" xml:space="preserve">
+    <value>The object type is not serializable, and thus cannot be encrypted.</value>
+    <comment>The object type is not serializable, and thus cannot be encrypted.</comment>
   </data>
   <data name="ENCRYPT_UNHANDLED_MSG" xml:space="preserve">
     <value>Encountered an unexpected problem while encrypting a string.</value>

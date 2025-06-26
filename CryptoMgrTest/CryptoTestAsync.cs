@@ -2,28 +2,11 @@
 
 namespace Jeff.Jones.CryptoMgrTest
 {
-    /// <summary>
-    /// Provides unit tests for cryptographic operations, including encryption, decryption, and hashing.
-    /// </summary>
-    /// <remarks>This class contains test methods for verifying the behavior of cryptographic operations using
-    /// the <see cref="Crypto"/> class. It includes tests for string encryption and decryption, as well as object
-    /// encryption and decryption. Additionally, lifecycle methods are implemented to manage setup and cleanup at the
-    /// assembly, class, and test levels.</remarks>
     [TestClass]
-    public sealed class CryptoTest
+    public sealed class CryptoTestAsync
     {
-        [AssemblyInitialize]
-        public static void AssemblyInit(TestContext context)
-        {
-            // This method is called once for the test assembly, before any tests are run.
-        }
-
-        [AssemblyCleanup]
-        public static void AssemblyCleanup()
-        {
-            // This method is called once for the test assembly, after all tests are run.
-        }
-
+        // NOTE: [AssemblyInitialize] and [AssemblyCleanup] can only exist in one test class.
+        //       If you have multiple test classes, only one of them can contain these methods.
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
@@ -60,23 +43,23 @@ namespace Jeff.Jones.CryptoMgrTest
         [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "ShortText", "fz1sHNfZi2HaotBkQYthUQ==")]
         [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "This is a long string to be encrypted to see how it goes. Did you know 2 + 2 = 4?", "12cRnivee9+1GZaWSGpaqqXB+AP/P9T2S8vJhAjcj0RhWBsom/Oqn7Jxs011MHsE2bg5aHzpJi7EhRyNQBD9EmH79Fo5SCh9NHbiVGK3HaLGqqA/vL4tkdn7nr6r0iv3")]
         [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "000-00-0000", "aa1pZYaF35+rDa7q1fvLrQ==")]
-        public void EncryptionTest(String key, String iv, String txt2Encrypt, String encryptedValue)
+        public async Task EncryptionTestAsync(String key, String iv, String txt2Encrypt, String encryptedValue)
         {
 
-            Crypto crypto = new Crypto(key, iv, System.Security.Cryptography.CipherMode.CBC);
+            CryptoAsync crypto = new CryptoAsync(key, iv, System.Security.Cryptography.CipherMode.CBC);
 
-            String encrypted = crypto.EncryptStringAES(txt2Encrypt);
+            String encrypted = await crypto.EncryptStringAESAsync(txt2Encrypt);
 
             // Use this to stop and capture a new encrypted string value to use above.
             //Debug.WriteLine($"[{txt2Encrypt}] [{encrypted}]");
 
             Assert.AreEqual(encryptedValue, encrypted);
 
-            String hash = crypto.GetSHA512Hash(txt2Encrypt);
+            String hash = await crypto.GetSHA512HashAsync(txt2Encrypt);
 
             Assert.IsTrue(hash.Length > 0);
 
-            String decrypted = crypto.DecryptStringAES(encrypted);
+            String decrypted = await crypto.DecryptStringAESAsync(encrypted);
 
             Assert.AreEqual(txt2Encrypt, decrypted);
 
@@ -100,14 +83,14 @@ namespace Jeff.Jones.CryptoMgrTest
         [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "George", "Washington", "1732-02-22T08:00:00", "1799-12-04T18:10:00", "WCBvUzMEHkaj9bA5R7eVh9NJQN3HogW4bsRJXzM2Wkxz+neET0MSWVQpTBNca0WCETPWdZGRmbCg+xpVHOQ8mj4v4vqJkpuDDi6QUBrPKVSjwugSSxORrnVVolgdYl+zfcbonHUKz6cLlQ37FcQO1Ig5bZ82zQLFheg4Uh+Qfd1juOyjpraHrNtUazy3mO3plwJni46VoCJWFKdg22fwi6k+c/khjBd7K1UjeioVsHRSpquaMwsVIdEXZwpIzlop")]
         [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "Thomas", "Jefferson", "1743-04-13T08:00:00", "1826-07-04T19:20:00", "WCBvUzMEHkaj9bA5R7eVh73olNW29Gg4n8+nHItUIYD6dEj+FWoAWEj+PsoXV9d7vraWepYEfrd3IiV7t0l35NEX/SgbIqM7ZChBXYfl8tN0JFlikvkWqiGQcauvWUHdtktLgWu8Tp4cjsbDgy9gbhm+/Ngk9rE9+Yj6UN7Kr/g9v9Lt5IHI5zaSr1SVUb5pyTgnzSl9Cp/lt+IamFsVJQsMz/gvphk+I99Iy88MziWGLClBF6Umvc2pNzk15rTs")]
         [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "William", "Clinton", "1946-08-19T20:30:00", null, "WCBvUzMEHkaj9bA5R7eVh2UcEKeWkHpjD8FfBXO7mPi4hb16GIRVojkKq3TU9Ghs0hS6CGzX+ls2BVTjrSRJR+ft4TXHukq0Z0hKOdsN6h6hs/sSc2WQA8SAlabzt7/M3JS7x99xPpnQYpJv9ymXyLFeruK0Hci9SJD9uZ6UGf0YlI6bSzkDxrf0nxkEfm2OkAxqH6edLhnyTUzRaAGJO3CVn773D/7kLGmWfdOvKhU=")]
-        public void EncryptionObjectTest(String key, String iv, String firstName, String lastName,
-                                         String birthDate, String deathDate, String encryptedValue)
+        public async Task EncryptionObjectTestAsync(String key, String iv, String firstName, String lastName,
+                                               String birthDate, String deathDate, String encryptedValue)
         {
             DateTime birthDateTime;
 
             DateTime deathDateTime;
 
-            Crypto crypto = new Crypto(key, iv, System.Security.Cryptography.CipherMode.CBC);
+            CryptoAsync crypto = new CryptoAsync(key, iv, System.Security.Cryptography.CipherMode.CBC);
 
             TestClass testBefore = new TestClass()
             {
@@ -137,12 +120,13 @@ namespace Jeff.Jones.CryptoMgrTest
             testBefore.MyList.Add("Test1");
             testBefore.MyList.Add("Test2");
 
-            String encrypted = crypto.EncryptObjectAES<TestClass>(testBefore);
+            String encrypted = await crypto.EncryptObjectAESAsync<TestClass>(testBefore);
 
             // Use this to stop and capture a new encrypted string value to use above.
             //Debug.WriteLine($"[{txt2Encrypt}] [{encrypted}]");
 
             Assert.AreEqual(encryptedValue, encrypted);
+
 
             // Sample JSON before encryption:
             //{
@@ -155,11 +139,11 @@ namespace Jeff.Jones.CryptoMgrTest
             //      "Test2"
             //    ]
             //}
-            String hashBefore = crypto.GetObjectSHA512Hash<TestClass>(testBefore);
+            String hashBefore = await crypto.GetObjectSHA512HashAsync<TestClass>(testBefore);
 
             Assert.IsTrue(hashBefore.Length > 0);
 
-            TestClass testAfter = crypto.DecryptObjectAES<TestClass>(encrypted);
+            TestClass testAfter = await crypto.DecryptObjectAESAsync<TestClass>(encrypted);
 
             // Sample JSON after encryption:
             //{
@@ -173,7 +157,7 @@ namespace Jeff.Jones.CryptoMgrTest
             //    ]
             //}
 
-            String hashAfter = crypto.GetObjectSHA512Hash<TestClass>(testAfter);
+            String hashAfter = await crypto.GetObjectSHA512HashAsync<TestClass>(testAfter);
 
             Assert.IsTrue(hashAfter.Length > 0);
 
@@ -188,8 +172,6 @@ namespace Jeff.Jones.CryptoMgrTest
             testAfter = null;
 
         }
-
-
 
     }
 }

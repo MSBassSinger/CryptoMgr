@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CryptoMgr.Properties {
+namespace Jeff.Jones.CryptoMgr.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace CryptoMgr.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CryptoMgr.Properties.CryptoResources", typeof(CryptoResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Jeff.Jones.CryptoMgr.Properties.CryptoResources", typeof(CryptoResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -79,6 +79,15 @@ namespace CryptoMgr.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The object type is not serializable, and thus cannot be decrypted and instantiated..
+        /// </summary>
+        internal static string DECRYPT_NONSERIALIZABLE_OBJECT {
+            get {
+                return ResourceManager.GetString("DECRYPT_NONSERIALIZABLE_OBJECT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encountered an unexpected problem while decrypting a string..
         /// </summary>
         internal static string DECRYPT_UNHANDLED_MSG {
@@ -102,6 +111,15 @@ namespace CryptoMgr.Properties {
         internal static string ENCRYPT_EMPTY_MSG {
             get {
                 return ResourceManager.GetString("ENCRYPT_EMPTY_MSG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The object type is not serializable, and thus cannot be encrypted..
+        /// </summary>
+        internal static string ENCRYPT_NONSERIALIZABLE_OBJECT {
+            get {
+                return ResourceManager.GetString("ENCRYPT_NONSERIALIZABLE_OBJECT", resourceCulture);
             }
         }
         

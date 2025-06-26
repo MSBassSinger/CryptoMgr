@@ -4,7 +4,38 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>Jeff.Jones.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <AssemblyName>Jeff.Jones.$(MSBuildProjectName)</AssemblyName>
+    <ApplicationIcon>circlej.ico</ApplicationIcon>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Crypto Manager</Title>
+    <Authors>Jeff Jones</Authors>
+    <Company>Jeff Jones</Company>
+    <Description>Library for AES encryption and SHA512 hash.  Has a synchronous class and an asynchronous class.</Description>
+    <Copyright>Copyright © 2025 Jeff Jones.  All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/MSBassSinger/CryptoMgr</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>circlej.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="circlej.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\CryptoResources.Designer.cs">
@@ -19,6 +50,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CryptoResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="circlej.ico">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="circlej.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

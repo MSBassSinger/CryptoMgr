@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CryptoMgrTest
+﻿namespace Jeff.Jones.CryptoMgrTest
 {
+    /// <summary>
+    /// This class is used when testing object encryption and decryption.
+    /// </summary>
     public class TestClass
     {
         public TestClass()
