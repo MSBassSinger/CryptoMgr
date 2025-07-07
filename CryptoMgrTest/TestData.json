@@ -1,0 +1,52 @@
+[
+  {
+    "Iteration": 1,
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654321",
+    "ExpectedValue": "0FRux8wphlqpLxKgz9AJjw==",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "ValueToEncrypt": "ThisIs@Pas$wurd",
+    "TestDescription": "Using Key, IV, CBC Cipher, Moderate length value"
+  },
+  {
+    "Iteration": 2,
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654322",
+    "ExpectedValue": "53KWg6bqEqRtyglZZRBn4g==",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "ValueToEncrypt": "ShortText",
+    "TestDescription": "Using Key, IV, CBC Cipher, Short length value"
+  },
+  {
+    "Iteration": 3,
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654323",
+    "ExpectedValue": "BfSlG\u002BbBUC2xP3Elp6H2lpK/gJHQUQW0DRm/DRSpZiHdBpmjIn/rlXv2bvHBjUIzpRaVC/Canty2Q/aXQ0k5Idl87\u002Br5Q1OhaUqbvL7ZCfDo2A2rEbppHdfKU3eMGVGb",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "ValueToEncrypt": "This is a long string to be encrypted to see how it goes. Did you know 2 \u002B 2 = 4?",
+    "TestDescription": "Using Key, IV, CBC Cipher, Long length value"
+  },
+  {
+    "Iteration": 4,
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654324",
+    "ExpectedValue": "h7SGZP46xxliwyZBBJEscQ==",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "ValueToEncrypt": "000-00-0000",
+    "TestDescription": "Using Key, IV, CBC Cipher, Moderate length value that is formatted numeric"
+  },
+  {
+    "Iteration": 5,
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "",
+    "ExpectedValue": "zAlswRuCoL5wdGvUbM9DZg==",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "ValueToEncrypt": "000-00-0000",
+    "TestDescription": "Using Key, no IV, CBC Cipher, Moderate length value that is formatted numeric"
+  }
+]

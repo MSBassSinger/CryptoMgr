@@ -3,9 +3,9 @@
     /// <summary>
     /// This class is used when testing object encryption and decryption.
     /// </summary>
-    public class TestClass
+    public class TestPersonClass
     {
-        public TestClass()
+        public TestPersonClass()
         {
         }
 
@@ -16,14 +16,14 @@
 
         public DateTime? DeathDate { get; set; } = null;
 
-        public TestChildClass MyList { get; set; } = new TestChildClass();
+        public TestPersonChildClass MyList { get; set; } = new TestPersonChildClass();
 
 
     }
 
-    public class TestChildClass : List<String>
+    public class TestPersonChildClass : List<String>
     {
-        public TestChildClass() : base()
+        public TestPersonChildClass() : base()
         {
         }
 

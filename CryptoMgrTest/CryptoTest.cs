@@ -1,4 +1,12 @@
 ﻿using Jeff.Jones.CryptoMgr;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.Configuration.Xml;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Jeff.Jones.CryptoMgrTest
 {
@@ -12,10 +20,15 @@ namespace Jeff.Jones.CryptoMgrTest
     [TestClass]
     public sealed class CryptoTest
     {
+        private static IConfigurationRoot m_Config = default!;
+
+        private static LogLevelsBitset m_LogLevels = default!;
+
+
         [AssemblyInitialize]
         public static void AssemblyInit(TestContext context)
         {
-            // This method is called once for the test assembly, before any tests are run.
+            // This method is called once for the test class, before any tests of the class are run.
         }
 
         [AssemblyCleanup]
@@ -27,7 +40,23 @@ namespace Jeff.Jones.CryptoMgrTest
         [ClassInitialize]
         public static void ClassInit(TestContext context)
         {
-            // This method is called once for the test class, before any tests of the class are run.
+
+            // Fix for CS1061: Ensure the required package is referenced in the project.
+            // AddJsonFile is an extension method provided by Microsoft.Extensions.Configuration.Json.
+            // Ensure the NuGet package "Microsoft.Extensions.Configuration.Json" and
+            // "Microsoft.Extensions.Configuration.XML" are installed in the project.
+            // Build a configuration object from JSON file
+            m_Config = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddXmlFile("app.config", optional: false, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            String logLevelString = m_Config["Logging:LogBitsetLevel"];
+
+            m_LogLevels = Enum.Parse<LogLevelsBitset>(logLevelString);
+
         }
 
         [ClassCleanup]
@@ -49,100 +78,116 @@ namespace Jeff.Jones.CryptoMgrTest
         }
 
         /// <summary>
+        /// Retrieves a collection of test data.
+        /// A single method is coded to return the test data, so that it can be used in multiple test methods.
+        /// It is possible to add a parameter to the call to have the method dynamically change the test data 
+        /// based on the parameter.
+        /// </summary>
+        /// <returns>A <see cref="TestDataList"/> containing the test data. The collection will be empty if no test data is
+        /// available.</returns>
+        public static TestDataList GetTestData()
+        {
+            return Helpers.GetTestData();
+        }
+
+
+        public static TestPersonDataList GetTestPersonData()
+        {
+            return Helpers.GetTestPersonData();
+        }
+
+
+        /// <summary>
         /// Tests encryption, decryption, and hashing of a string using the AES algorithm in CBC mode.
         /// </summary>
-        /// <param name="key">Encryption key (a secret)</param>
-        /// <param name="iv">Public string used usually one time or once per operation.</param>
-        /// <param name="txt2Encrypt">The string to encrypt</param>
-        /// <param name="encryptedValue">The expected encrypted string.</param>
-        [TestMethod]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "ThisIs@Pas$wurd", "0FRux8wphlqpLxKgz9AJjw==")]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "ShortText", "fz1sHNfZi2HaotBkQYthUQ==")]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "This is a long string to be encrypted to see how it goes. Did you know 2 + 2 = 4?", "12cRnivee9+1GZaWSGpaqqXB+AP/P9T2S8vJhAjcj0RhWBsom/Oqn7Jxs011MHsE2bg5aHzpJi7EhRyNQBD9EmH79Fo5SCh9NHbiVGK3HaLGqqA/vL4tkdn7nr6r0iv3")]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "000-00-0000", "aa1pZYaF35+rDa7q1fvLrQ==")]
-        public void EncryptionTest(String key, String iv, String txt2Encrypt, String encryptedValue)
+        /// <param name="testData">TestData instance with the data to test for 1 iteration.</param>
+        [DataTestMethod]
+        [DynamicData(nameof(GetTestData))]
+        public void EncryptionTest(TestData testData)
         {
+            TestLogger logger = new TestLogger();
 
-            Crypto crypto = new Crypto(key, iv, System.Security.Cryptography.CipherMode.CBC);
+            logger.LogTrace($"Starting CryptoTest.EncryptionTest, iteration # [{testData.Iteration}].");
 
-            String encrypted = crypto.EncryptStringAES(txt2Encrypt);
+            Crypto crypto = new Crypto(testData.Key, testData.IV, logger, m_Config, testData.CipherMode);
 
-            // Use this to stop and capture a new encrypted string value to use above.
-            //Debug.WriteLine($"[{txt2Encrypt}] [{encrypted}]");
+            String encrypted = crypto.EncryptStringAES(testData.ValueToEncrypt);
 
-            Assert.AreEqual(encryptedValue, encrypted);
+            if (testData.IV.Length == 0)
+            {
+                // Use this to stop and capture a new encrypted string value to use above.
+                logger.LogDebug($"[{testData.Iteration}]-[{testData.ValueToEncrypt}] [{encrypted}] Generated IV [{crypto.IV}]");
+            }
+            else
+            {
+                // Use this to stop and capture a new encrypted string value to use above.
+                logger.LogDebug($"[{testData.Iteration}]-[{testData.ValueToEncrypt}] [{encrypted}]");
+            }
 
-            String hash = crypto.GetSHA512Hash(txt2Encrypt);
+            logger.LogInformation($"Encryption of [{testData.ValueToEncrypt}] to [{encrypted}], expecting [{testData.ExpectedValue}], iteration # [{testData.Iteration}].");
+
+            if (testData.IV.Length > 0)
+            {
+                Assert.AreEqual(testData.ExpectedValue, encrypted);
+            }
+            else
+            {
+                Assert.IsNotNull(encrypted, "Used generated IV.");
+            }
+
+            String hash = crypto.GetSHA512Hash(testData.ValueToEncrypt);
+
+            logger.LogInformation($"Hash of [{testData.ValueToEncrypt}] to [{hash}] iteration # [{testData.Iteration}].");
 
             Assert.IsTrue(hash.Length > 0);
 
             String decrypted = crypto.DecryptStringAES(encrypted);
 
-            Assert.AreEqual(txt2Encrypt, decrypted);
+            logger.LogInformation($"Decryption of [{testData.ValueToEncrypt}] to [{decrypted}], iteration # [{testData.Iteration}].");
+
+            Assert.AreEqual(testData.ValueToEncrypt, decrypted);
 
             crypto.Dispose();
 
-            crypto = null;
+            crypto = null!;
 
+            logger.LogTrace($"Exiting CryptoTest.EncryptionTest, iteration # [{testData.Iteration}].");
+
+            logger = null!;
         }
 
         /// <summary>
         /// Tests encryption, decryption, and hashing of an object using the AES algorithm in CBC mode.
         /// </summary>
-        /// <param name="key">Encryption key (a secret)</param>
-        /// <param name="iv">Public string used usually one time or once per operation.</param>
-        /// <param name="firstName">Data for the TestClass instance.</param>
-        /// <param name="lastName">Data for the TestClass instance.</param>
-        /// <param name="birthDate">Data for the TestClass instance.</param>
-        /// <param name="deathDate">Data for the TestClass instance.</param>
-        /// <param name="encryptedValue">The expected encryption value.</param>
-        [TestMethod]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "George", "Washington", "1732-02-22T08:00:00", "1799-12-04T18:10:00", "WCBvUzMEHkaj9bA5R7eVh9NJQN3HogW4bsRJXzM2Wkxz+neET0MSWVQpTBNca0WCETPWdZGRmbCg+xpVHOQ8mj4v4vqJkpuDDi6QUBrPKVSjwugSSxORrnVVolgdYl+zfcbonHUKz6cLlQ37FcQO1Ig5bZ82zQLFheg4Uh+Qfd1juOyjpraHrNtUazy3mO3plwJni46VoCJWFKdg22fwi6k+c/khjBd7K1UjeioVsHRSpquaMwsVIdEXZwpIzlop")]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "Thomas", "Jefferson", "1743-04-13T08:00:00", "1826-07-04T19:20:00", "WCBvUzMEHkaj9bA5R7eVh73olNW29Gg4n8+nHItUIYD6dEj+FWoAWEj+PsoXV9d7vraWepYEfrd3IiV7t0l35NEX/SgbIqM7ZChBXYfl8tN0JFlikvkWqiGQcauvWUHdtktLgWu8Tp4cjsbDgy9gbhm+/Ngk9rE9+Yj6UN7Kr/g9v9Lt5IHI5zaSr1SVUb5pyTgnzSl9Cp/lt+IamFsVJQsMz/gvphk+I99Iy88MziWGLClBF6Umvc2pNzk15rTs")]
-        [DataRow("$#%&(kjh565&*IKJ$#%&(kjh565&*IKJ", "1234567887654321", "William", "Clinton", "1946-08-19T20:30:00", null, "WCBvUzMEHkaj9bA5R7eVh2UcEKeWkHpjD8FfBXO7mPi4hb16GIRVojkKq3TU9Ghs0hS6CGzX+ls2BVTjrSRJR+ft4TXHukq0Z0hKOdsN6h6hs/sSc2WQA8SAlabzt7/M3JS7x99xPpnQYpJv9ymXyLFeruK0Hci9SJD9uZ6UGf0YlI6bSzkDxrf0nxkEfm2OkAxqH6edLhnyTUzRaAGJO3CVn773D/7kLGmWfdOvKhU=")]
-        public void EncryptionObjectTest(String key, String iv, String firstName, String lastName,
-                                         String birthDate, String deathDate, String encryptedValue)
+        /// <param name="testData">TestPersonData instance with the data to test for 1 iteration.</param>
+        [DataTestMethod]
+        [DynamicData(nameof(GetTestPersonData))]
+        public void EncryptionObjectTest(TestPersonData testData)
         {
-            DateTime birthDateTime;
 
-            DateTime deathDateTime;
+            TestLogger logger = new TestLogger();
 
-            Crypto crypto = new Crypto(key, iv, System.Security.Cryptography.CipherMode.CBC);
+            logger.LogTrace($"Starting CryptoTest.EncryptionObjectTest, iteration # [{testData.Iteration}].");
 
-            TestClass testBefore = new TestClass()
+            Crypto crypto = new Crypto(testData.Key, testData.IV, logger, m_Config, testData.CipherMode);
+
+            TestPersonClass testBefore = new TestPersonClass()
             {
-                FirstName = firstName,
-                LastName = lastName,
-                BirthDate = null,
-                DeathDate = null
+                FirstName = testData.FirstName,
+                LastName = testData.LastName,
+                BirthDate = testData.Birthdate,
+                DeathDate = testData.DeathDate
             };
-
-
-            if (!String.IsNullOrEmpty(birthDate))
-            {
-                if (DateTime.TryParse(birthDate, out birthDateTime))
-                {
-                    testBefore.BirthDate = birthDateTime;
-                }
-            }
-
-            if (!String.IsNullOrEmpty(deathDate))
-            {
-                if (DateTime.TryParse(deathDate, out deathDateTime))
-                {
-                    testBefore.DeathDate = deathDateTime;
-                }
-            }
 
             testBefore.MyList.Add("Test1");
             testBefore.MyList.Add("Test2");
 
-            String encrypted = crypto.EncryptObjectAES<TestClass>(testBefore);
+            String encrypted = crypto.EncryptObjectAES<TestPersonClass>(testBefore);
 
             // Use this to stop and capture a new encrypted string value to use above.
-            //Debug.WriteLine($"[{txt2Encrypt}] [{encrypted}]");
+            logger.LogDebug($"[testBefore] [{encrypted}]");
 
-            Assert.AreEqual(encryptedValue, encrypted);
+            Assert.AreEqual(testData.ExpectedValue, encrypted);
 
             // Sample JSON before encryption:
             //{
@@ -155,11 +200,11 @@ namespace Jeff.Jones.CryptoMgrTest
             //      "Test2"
             //    ]
             //}
-            String hashBefore = crypto.GetObjectSHA512Hash<TestClass>(testBefore);
+            String hashBefore = crypto.GetObjectSHA512Hash<TestPersonClass>(testBefore);
 
             Assert.IsTrue(hashBefore.Length > 0);
 
-            TestClass testAfter = crypto.DecryptObjectAES<TestClass>(encrypted);
+            TestPersonClass testAfter = crypto.DecryptObjectAES<TestPersonClass>(encrypted);
 
             // Sample JSON after encryption:
             //{
@@ -173,7 +218,7 @@ namespace Jeff.Jones.CryptoMgrTest
             //    ]
             //}
 
-            String hashAfter = crypto.GetObjectSHA512Hash<TestClass>(testAfter);
+            String hashAfter = crypto.GetObjectSHA512Hash<TestPersonClass>(testAfter);
 
             Assert.IsTrue(hashAfter.Length > 0);
 
@@ -181,12 +226,15 @@ namespace Jeff.Jones.CryptoMgrTest
 
             crypto.Dispose();
 
-            crypto = null;
+            crypto = null!;
 
-            testBefore = null;
+            testBefore = null!;
 
-            testAfter = null;
+            testAfter = null!;
 
+            logger.LogTrace($"Exiting CryptoTestAsync.EncryptionObjectTestAsync, iteration # [{testData.Iteration}].");
+
+            logger = null!;
         }
 
 

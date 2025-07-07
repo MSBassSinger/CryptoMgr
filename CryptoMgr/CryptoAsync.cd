@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Jeff.Jones.CryptoMgr.CryptoAsync">
+    <Position X="1.25" Y="1" Width="4.75" />
+    <TypeIdentifier>
+      <HashCode>AAAACDAAACDABIACAQIBBAAgAAAAAQAAQQiAAAAAAAA=</HashCode>
+      <FileName>CryptoAsync.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

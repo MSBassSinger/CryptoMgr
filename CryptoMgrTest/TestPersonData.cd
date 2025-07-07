@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Jeff.Jones.CryptoMgrTest.TestPersonData">
+    <Position X="0.75" Y="1.5" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAEAAAAAQAAQAAAAAAAQAAAAAQAAAAQgAAAAAAAg=</HashCode>
+      <FileName>TestPersonData.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Jeff.Jones.CryptoMgrTest.TestPersonDataList">
+    <Position X="5.75" Y="1.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>TestPersonData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

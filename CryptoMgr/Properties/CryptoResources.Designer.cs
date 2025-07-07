@@ -61,7 +61,7 @@ namespace Jeff.Jones.CryptoMgr.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected problem occurred while building an object to handle crypotgraphic operations..
+        ///   Looks up a localized string similar to An unexpected problem occurred while building an object to handle crypotgraphic operations Additional information: [{0}]..
         /// </summary>
         internal static string CTOR_UNHANDLED_MSG {
             get {

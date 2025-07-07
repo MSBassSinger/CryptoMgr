@@ -118,8 +118,8 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CTOR_UNHANDLED_MSG" xml:space="preserve">
-    <value>An unexpected problem occurred while building an object to handle crypotgraphic operations.</value>
-    <comment>An unexpected problem occurred while building an object to handle cryptographic operations.</comment>
+    <value>An unexpected problem occurred while building an object to handle crypotgraphic operations Additional information: [{0}].</value>
+    <comment>An unexpected problem occurred while building an object to handle crypotgraphic operations Additional information: [{0}].</comment>
   </data>
   <data name="DECRYPTED_STREAM_UNHANDLED_MSG" xml:space="preserve">
     <value>Encountered an unexpected problem while creating an decrypted stream.</value>

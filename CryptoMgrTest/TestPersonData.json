@@ -1,0 +1,41 @@
+[
+  {
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654321",
+    "ExpectedValue": "WCBvUzMEHkaj9bA5R7eVh9NJQN3HogW4bsRJXzM2Wkxz\u002BneET0MSWVQpTBNca0WCETPWdZGRmbCg\u002BxpVHOQ8mj4v4vqJkpuDDi6QUBrPKVSjwugSSxORrnVVolgdYl\u002BzfcbonHUKz6cLlQ37FcQO1Ig5bZ82zQLFheg4Uh\u002BQfd1juOyjpraHrNtUazy3mO3plwJni46VoCJWFKdg22fwi6k\u002Bc/khjBd7K1UjeioVsHRSpquaMwsVIdEXZwpIzlop",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "FirstName": "George",
+    "LastName": "Washington",
+    "Birthdate": "1732-02-22T08:00:00",
+    "DeathDate": "1799-12-04T18:10:00",
+    "Iteration": 1,
+    "TestDescription": "Using Key, IV, CBC Cipher, Serialized class"
+  },
+  {
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654321",
+    "ExpectedValue": "WCBvUzMEHkaj9bA5R7eVh73olNW29Gg4n8\u002BnHItUIYD6dEj\u002BFWoAWEj\u002BPsoXV9d7vraWepYEfrd3IiV7t0l35NEX/SgbIqM7ZChBXYfl8tN0JFlikvkWqiGQcauvWUHdtktLgWu8Tp4cjsbDgy9gbhm\u002B/Ngk9rE9\u002BYj6UN7Kr/g9v9Lt5IHI5zaSr1SVUb5pyTgnzSl9Cp/lt\u002BIamFsVJQsMz/gvphk\u002BI99Iy88MziWGLClBF6Umvc2pNzk15rTs",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "FirstName": "Thomas",
+    "LastName": "Jefferson",
+    "Birthdate": "1743-04-13T08:00:00",
+    "DeathDate": "1826-07-04T19:20:00",
+    "Iteration": 2,
+    "TestDescription": "Using Key, IV, CBC Cipher, Serialized class"
+  },
+  {
+    "Key": "$#%\u0026(kjh565\u0026*IKJ$#%\u0026(kjh565\u0026*IKJ",
+    "IV": "1234567887654321",
+    "ExpectedValue": "WCBvUzMEHkaj9bA5R7eVh2UcEKeWkHpjD8FfBXO7mPi4hb16GIRVojkKq3TU9Ghs0hS6CGzX\u002Bls2BVTjrSRJR\u002Bft4TXHukq0Z0hKOdsN6h6hs/sSc2WQA8SAlabzt7/M3JS7x99xPpnQYpJv9ymXyLFeruK0Hci9SJD9uZ6UGf0YlI6bSzkDxrf0nxkEfm2OkAxqH6edLhnyTUzRaAGJO3CVn773D/7kLGmWfdOvKhU=",
+    "GeneratedIV": "",
+    "CipherMode": "CBC",
+    "FirstName": "William",
+    "LastName": "Clinton",
+    "Birthdate": "1946-08-19T20:30:00",
+    "DeathDate": null,
+    "Iteration": 3,
+    "TestDescription": "Using Key, IV, CBC Cipher, Serialized class"
+  }
+]
