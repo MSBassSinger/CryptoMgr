@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Jeff.Jones.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
     <AssemblyName>Jeff.Jones.$(MSBuildProjectName)</AssemblyName>
-    <ApplicationIcon>circlej.ico</ApplicationIcon>
+    <ApplicationIcon>Images\circlej.ico</ApplicationIcon>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Crypto Manager</Title>
@@ -16,14 +16,15 @@
     <Copyright>Copyright © 2025 Jeff Jones.  All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/MSBassSinger/CryptoMgr</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageIcon>circlej.png</PackageIcon>
+    <PackageIcon>Images\circlej.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageTags>Crypto;AES;.NET 9;Library;SHAHash</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="circlej.ico" />
+    <Content Include="Images\circlej.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,11 +60,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="circlej.ico">
+    <None Update="Images\circlej.ico">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Update="circlej.png">
+    <None Update="Images\circlej.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

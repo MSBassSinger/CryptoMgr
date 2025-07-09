@@ -1,4 +1,5 @@
 ﻿using Jeff.Jones.CryptoMgr.Properties;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -92,7 +93,7 @@ namespace Jeff.Jones.CryptoMgr
         /// </summary>
         /// <remarks>This field is intended for internal use only and should not be exposed or modified
         /// directly. The private key is required for decryption operations and must remain secure.</remarks>
-        private readonly String m_PrivateKey = "";
+        private String m_PrivateKey = "";
 
         /// <summary>
         /// Represents the initialization vector (IV) used in cryptographic operations.This holds the byte array of m_IV.
@@ -100,14 +101,14 @@ namespace Jeff.Jones.CryptoMgr
         /// <remarks>The initialization vector is a byte array that ensures the uniqueness of encryption
         /// results for identical plaintext inputs. It is typically required for certain encryption modes, such as
         /// CBC.</remarks>
-        private Byte[] m_aryIV;
+        private Byte[] m_aryIV = default!;
 
         /// <summary>
         /// Represents the private key as a byte array.This holds the byte array of m_PrivateKey.
         /// </summary>
         /// <remarks>This field is read-only and intended for internal use to store the private key data.
         /// It should not be exposed or modified directly.</remarks>
-        private readonly Byte[] m_aryPrivateKey;
+        private Byte[] m_aryPrivateKey = default!;
 
         /// <summary>
         /// Represents the cipher mode used for cryptographic operations.
@@ -116,7 +117,7 @@ namespace Jeff.Jones.CryptoMgr
         /// data. This field is set to <see cref="CipherMode.CBC"/>, which stands for Cipher Block Chaining. CBC mode
         /// requires an initialization vector (IV) and ensures that identical plaintext blocks produce different
         /// ciphertext blocks, enhancing security.</remarks>
-        private readonly CipherMode m_CipherMode = CipherMode.CBC;
+        private CipherMode m_CipherMode = CipherMode.CBC;
 
         /// <summary>
         /// Indicates whether the object's <see cref="Crypto.Dispose()"/> method has been called.
@@ -140,13 +141,40 @@ namespace Jeff.Jones.CryptoMgr
         /// <remarks>This field is intended for internal use and should be initialized before it is injected.</remarks>
         private ILogger m_Log = null!;
 
-        /// <summary>
-        /// Represents the configuration settings for the application.
-        /// </summary>
-        /// <remarks>This field is initialized during application startup and provides access to
-        /// configuration values. It should not be null during normal operation.</remarks>
-        private IConfiguration m_Config = null!;
 
+        /// <summary>
+        /// Represents the size of the AES encryption key.
+        /// </summary>
+        /// <remarks>The default key size is set to <see cref="AESKeySizeEnum.AES256"/>.</remarks>
+        private AESKeySizeEnum m_KeySize = AESKeySizeEnum.AES256;
+
+        /// <summary>
+        /// Provides configuration options for JSON serialization.
+        /// </summary>
+        /// <remarks>This instance of <see cref="JsonSerializerOptions"/> is configured to allow trailing
+        /// commas, handle numbers represented as strings, and format the output with indentation for
+        /// readability.</remarks>
+        private JsonSerializerOptions m_JsonSerializeOptions = new JsonSerializerOptions
+        {
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            WriteIndented = true
+        };
+
+        /// <summary>
+        /// Provides configuration options for JSON deserialization.
+        /// </summary>
+        /// <remarks>This configuration allows for case-insensitive property name matching and uses camel
+        /// case naming policy. It ignores null values during serialization and allows trailing commas in JSON input.
+        /// Additionally, it permits numbers to be read from strings.</remarks>
+        private JsonSerializerOptions m_JsonDeserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
 
 
         /// <summary>
@@ -155,25 +183,18 @@ namespace Jeff.Jones.CryptoMgr
         /// <param name="privateKey">Typically 32 characters long (32 characters x 8 bits/character = 256 bits). 16 characters is 128 bit encryption, 24 characters is 192 bit encryption.</param>
         /// <param name="iv">Typically 16 characters for 128 bit block size.  If using other block sizes, adjust the iv length to match.</param>
         /// <param name="logger">A instance of the ILogger instance being used, or null if not used.</param>
-        /// <param name="config">An instance of the calling code's IConfiguration, or null if not used.</param>
+        /// <param name="logLevels">Logging levels to use.  If not passed in, it defaults to "Error" and "Fatal".</param>
         /// <param name="cipherMode">CBC is the default, and the most commonly used.</param>
-        public Crypto(String privateKey, String iv, ILogger logger = null!, IConfiguration config = null!, CipherMode cipherMode = CipherMode.CBC)
+        public Crypto(String privateKey, String iv, ILogger logger = null!, LogLevelsBitset logLevels = Extensions.DEFAULT_LOG_LEVELS, CipherMode cipherMode = CipherMode.CBC)
         {
             Stopwatch stopWatch = Stopwatch.StartNew();
 
             m_Log = logger;
 
-            m_Config = config;
-
-            if (m_Config != null)
-            {
-                // What gets logged and what is skipped over is determined by this bitset variable.
-                // It should exist in the IConfiguration object injected into this object.
-                // If it does not exist in the IConfiguration object, or that object does not exist, then the default value is used.
-                String logLevels = m_Config["Logging:LogLevels"] ?? Extensions.DEFAULT_LOG_LEVELS_STRING;
-                m_LogLevels = Enum.Parse<LogLevelsBitset>(logLevels);
-            }
-
+            // What gets logged and what is skipped over is determined by this bitset variable.
+            // It should be injected into this object.
+            // If it is not injected, then the default value is used.
+            m_LogLevels = logLevels;
 
             try
             {
@@ -212,7 +233,11 @@ namespace Jeff.Jones.CryptoMgr
                 m_IV = iv;
 
                 // Make that value into a byte array.
-                m_aryIV = Encoding.ASCII.GetBytes(iv);
+                if (m_IV.Length > 0)
+                {
+                    m_aryIV = Encoding.ASCII.GetBytes(m_IV);
+                }
+
 
                 // Anchor the cipher mode internally.
                 m_CipherMode = cipherMode;
@@ -252,16 +277,120 @@ namespace Jeff.Jones.CryptoMgr
         }
 
         /// <summary>
-        /// Gets the initialization vector (IV) used for cryptographic operations.
-        /// The value is dynamically generated if the IV passed in is not a valid IV string.
+        /// Gets or sets the bitset representing the enabled log levels.
+        /// This is useful for changing the logging levels during runtime.
+        /// </summary>
+        public LogLevelsBitset LogLevelsBitset
+        {
+            get
+            {
+                return m_LogLevels;
+            }
+            set
+            {
+                m_LogLevels = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the initialization vector (IV) used for cryptographic operations.
+        /// The value is dynamically generated if the IV passed in the constructor is not a valid IV string.
         /// </summary>
         public String IV
-        {             
+        {
             get
             {
                 return m_IV;
             }
+            set
+            {
+                m_IV = value;
+
+                if (String.IsNullOrWhiteSpace(m_IV))
+                {
+                    m_IV = "";
+                }
+                else
+                {
+                    if (m_IV.Length < 16)
+                    {
+                        m_IV = "";
+                    }
+                }
+
+                // Make that value into a byte array.
+                if (m_IV.Length > 0)
+                {
+                    m_aryIV = Encoding.ASCII.GetBytes(m_IV);
+                }
+                else
+                {
+                    m_aryIV = default!;
+                }
+
+            }
         }
+
+        /// <summary>
+        /// Gets or sets the private key used for cryptographic operations.
+        /// </summary>
+        public String PrivateKey
+        {
+            get
+            {
+                return m_PrivateKey;
+            }
+            set
+            {
+                m_PrivateKey = value;
+
+                if (String.IsNullOrWhiteSpace(m_PrivateKey))
+                {
+                    String msg = String.Format(CryptoResources.PRIVATE_KEY_INVALID_MSG, "PrivateKey is null or empty or just whitespace.  The value is needed for encryption, and should be the length specified in KeySize.");
+                    ArgumentNullException exArgKey = new ArgumentNullException(msg);
+
+                    throw exArgKey;
+                }
+                else
+                {
+                    // Make that value into a byte array.
+                    m_aryPrivateKey = Encoding.ASCII.GetBytes(m_PrivateKey);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Gets the size of the private key in bytes.
+        /// </summary>
+        public AESKeySizeEnum KeySize
+        {
+            get
+            {
+                return m_KeySize;
+            }
+            set
+            {
+                m_KeySize = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the mode of operation for the cipher algorithm.
+        /// </summary>
+        /// <remarks>The cipher mode determines how the algorithm processes blocks of data. Common modes
+        /// include CBC (Cipher Block Chaining) and ECB (Electronic Codebook).</remarks>
+        public CipherMode CipherMode
+        {
+            get
+            {
+                return m_CipherMode;
+            }
+            set
+            {
+                m_CipherMode = value;
+            }
+        }   
 
         /// <summary>
         /// Generates a random initialization vector (IV) for use in cryptographic operations.
@@ -276,7 +405,7 @@ namespace Jeff.Jones.CryptoMgr
         /// string. This IV can be used to ensure the security of encryption processes by introducing
         /// randomness.</remarks>
         /// <returns>A Base64-encoded string representing the generated random initialization vector (IV).</returns>
-        public String GenerateRandomIV()
+        public String GenerateRandomIV(Boolean changeInternal = false)
         {
             Stopwatch stopWatch = Stopwatch.StartNew();
 
@@ -293,11 +422,18 @@ namespace Jeff.Jones.CryptoMgr
             {
                 objAES = Aes.Create();
 
+                objAES.KeySize = (Int32)m_KeySize;
+
                 objAES.Mode = m_CipherMode;
 
                 objAES.GenerateIV();
 
                 retVal = Convert.ToBase64String(objAES.IV);
+
+                if (changeInternal)
+                {
+                    m_IV = retVal;
+                }
             }
             catch (Exception exUnhandled)
             {
@@ -345,12 +481,14 @@ namespace Jeff.Jones.CryptoMgr
         /// However, if the key and iv are not intended to persist or be stored outside the application
         /// (e.g. just used during runtime then forgotten), then they can be generated and used
         /// with the GenerateRandomIV() and GenerateRandomPrivateKey() methods.
+        /// 
+        /// They default KeySize is 256 bytes (32 characters x 8 bits/character).
         /// </summary>
         /// <remarks>The method creates a new instance of the AES encryption algorithm, generates a random
         /// key,  and returns the key as a Base64-encoded string. This key can be used for cryptographic operations 
         /// requiring a symmetric key.</remarks>
         /// <returns>A Base64-encoded string representing the randomly generated private key.</returns>
-        public String GenerateRandomPrivateKey()
+        public String GenerateRandomPrivateKey(Boolean changeInternal = false)
         {
             Stopwatch stopWatch = Stopwatch.StartNew();
 
@@ -367,12 +505,19 @@ namespace Jeff.Jones.CryptoMgr
             {
                 objAES = Aes.Create();
 
+                objAES.KeySize = (Int32)m_KeySize;
+
                 objAES.Mode = m_CipherMode;
 
                 objAES.GenerateKey();
 
                 retVal = Convert.ToBase64String(objAES.Key);
-             
+
+                if (changeInternal)
+                {
+                    m_PrivateKey = retVal;
+                }
+
             }
             catch (Exception exUnhandled)
             {
@@ -408,6 +553,7 @@ namespace Jeff.Jones.CryptoMgr
                     m_Log.LogTrace(logMsg);
                 }
             }
+
             return retVal;
         }
 
@@ -439,14 +585,8 @@ namespace Jeff.Jones.CryptoMgr
 
             try
             {
-                JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-                {
-                    AllowTrailingCommas = true,
-                    NumberHandling = JsonNumberHandling.AllowReadingFromString,
-                    WriteIndented = true
-                };
 
-                String serializedObject = System.Text.Json.JsonSerializer.Serialize<T>(objectToEncrypt, jsonOptions);
+                String serializedObject = System.Text.Json.JsonSerializer.Serialize<T>(objectToEncrypt, m_JsonSerializeOptions);
 
                 retVal = EncryptStringAES(serializedObject);
 
@@ -536,18 +676,9 @@ namespace Jeff.Jones.CryptoMgr
             try
             {
 
-                JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-                    AllowTrailingCommas = true,
-                    NumberHandling = JsonNumberHandling.AllowReadingFromString
-                };
-
                 String serializedObject = DecryptStringAES(encryptedText);
 
-                retVal = JsonSerializer.Deserialize<T>(serializedObject, jsonOptions);
+                retVal = JsonSerializer.Deserialize<T>(serializedObject, m_JsonDeserializeOptions);
 
             }  // END try
             catch (NotSupportedException exNotSupported)
@@ -634,6 +765,9 @@ namespace Jeff.Jones.CryptoMgr
             try
             {
                 objAES = Aes.Create();
+
+                objAES.KeySize = (Int32)m_KeySize;
+
                 objAES.Key = m_aryPrivateKey;
 
                 if (m_IV.Length == 0)
@@ -762,6 +896,9 @@ namespace Jeff.Jones.CryptoMgr
             try
             {
                 objAES = Aes.Create();
+
+                objAES.KeySize = (Int32)m_KeySize;
+
                 objAES.Key = m_aryPrivateKey;
 
                 if (m_IV.Length == 0)
@@ -865,8 +1002,9 @@ namespace Jeff.Jones.CryptoMgr
         /// the hash. Ensure that the object is serializable and does not contain circular references.</remarks>
         /// <typeparam name="T">The type of the object to hash.</typeparam>
         /// <param name="objectToHash">The object to compute the hash for. Cannot be <see langword="null"/>.</param>
-        /// <returns>A string representation of the SHA-512 hash of the serialized object.</returns>
-        public String GetObjectSHA512Hash<T>(T objectToHash)
+        /// <param name="useRandomSalt">Salt (a random string) added to unencrypted serialized object to improve security.</param>
+        /// <returns>A string representation of the SHA-512 hash of the serialized object, and a string for the salt..</returns>
+        public HashResponse GetObjectSHA512Hash<T>(T objectToHash, Boolean useRandomSalt = true)
         {
             Stopwatch stopWatch = Stopwatch.StartNew();
 
@@ -881,20 +1019,13 @@ namespace Jeff.Jones.CryptoMgr
                 throw exArg;
             }
 
-            String retVal = "";                 // Hashed string to return 
+            HashResponse retVal = null!; 
 
             try
             {
-                JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-                {
-                    AllowTrailingCommas = true,
-                    NumberHandling = JsonNumberHandling.AllowReadingFromString,
-                    WriteIndented = true
-                };
+                String serializedObject = System.Text.Json.JsonSerializer.Serialize<T>(objectToHash, m_JsonSerializeOptions);
 
-                String serializedObject = System.Text.Json.JsonSerializer.Serialize<T>(objectToHash, jsonOptions);
-
-                retVal = GetSHA512Hash(serializedObject);
+                retVal = GetSHA512Hash(serializedObject, useRandomSalt);
 
             }  // END try
             catch (Exception exUnhandled)
@@ -918,6 +1049,8 @@ namespace Jeff.Jones.CryptoMgr
             {
                 stopWatch.Stop();
 
+                retVal.ExecutionTime = stopWatch.Elapsed.TotalMicroseconds;
+
                 if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
                 {
                     // This provides the log with method execution time.  Usually only needed for troubleshooting.
@@ -931,36 +1064,59 @@ namespace Jeff.Jones.CryptoMgr
             }
 
             return retVal;
-        }  // END public String GetObjectSHA512Hash<T>(T objectToHash)
+
+        }  // END public HashResponse GetObjectSHA512Hash<T>(T objectToHash, Boolean useRandomSalt = true)
 
         /// <summary>
         /// This function takes a value you want hashed and hashes it uses SHA-512 for strength.  
         /// </summary>
         /// <param name="stringToHash">This is the value, such as a password.  It will usually be the same over a number of instances on multiple machines.</param>
+        /// <param name="useRandomSalt">True gives better security with a random salt before hashing (non-deterministic). False hashes without using a salt are deterministic and less secure.</param>
         /// <returns>The value returned is the hash string in Base 64</returns>
-        public String GetSHA512Hash(String stringToHash)
+        public HashResponse GetSHA512Hash(String stringToHash, Boolean useRandomSalt = true)
         {
 
             Stopwatch stopWatch = Stopwatch.StartNew();
 
             if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
             {
-                m_Log.LogTrace($"Begin CryptoAsync [GetSHA512HashAsync] method.");
+                m_Log.LogTrace($"Begin CryptoAsync [GetSHA512Hash] method.");
             }
 
-            String retVal = "";
+            HashResponse retVal = null!;
 
             SHA512 hasher = null!;
 
+            Byte[] saltBytes = default!;
+
+            String hash = "";
+            String salt = "";
+
             try
             {
+
+                if (String.IsNullOrWhiteSpace(stringToHash))
+                {
+                    ArgumentNullException exArg = new ArgumentNullException(CryptoResources.HASH_EMPTY_MSG);
+                    throw exArg;
+                }
+
+                if (useRandomSalt)
+                {
+                    saltBytes = RandomNumberGenerator.GetBytes(16);
+                    salt = Convert.ToBase64String(saltBytes);
+                    stringToHash = stringToHash + salt;
+                }
+
                 Byte[] aryStringToHash = Encoding.UTF8.GetBytes(stringToHash);
 
                 hasher = SHA512.Create();
 
                 Byte[] aryHash = hasher.ComputeHash(aryStringToHash);
 
-                retVal = BitConverter.ToString(aryHash).Replace("-", "").ToLowerInvariant();
+                hash = Convert.ToBase64String(aryHash);
+
+                retVal = new HashResponse(hash, salt);
 
             }
             catch (Exception exUnhandled)
@@ -970,6 +1126,7 @@ namespace Jeff.Jones.CryptoMgr
                 exUnhandled.Data.AddCheck("m_CipherMode", m_CipherMode.ToString());
                 exUnhandled.Data.AddCheck("m_PrivateKey.Length", m_PrivateKey.Length.ToString());
                 exUnhandled.Data.AddCheck("m_IV.Length", m_IV.Length.ToString());
+                exUnhandled.Data.AddCheck("useRandomSalt", useRandomSalt.ToString());
 
                 if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Error) == LogLevelsBitset.Error))
                 {
@@ -995,6 +1152,8 @@ namespace Jeff.Jones.CryptoMgr
 
                 stopWatch.Stop();
 
+                retVal.ExecutionTime = stopWatch.Elapsed.TotalMicroseconds;
+
                 if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
                 {
                     // This provides the log with method execution time.  Usually only needed for troubleshooting.
@@ -1009,8 +1168,164 @@ namespace Jeff.Jones.CryptoMgr
 
             return retVal;
 
-        }  // END public String GetSHA512Hash(String stringToHash)
+        }  // END public HashResponse GetSHA512Hash(String stringToHash, Boolean useRandomSalt = true)
 
+        /// <summary>
+        /// Verifies whether the specified text, when hashed with the provided salt, matches the given SHA-512 hash
+        /// value.
+        /// </summary>
+        /// <remarks>This method uses the SHA-512 hashing algorithm to compute the hash of the
+        /// concatenated plain text and salt.  Ensure that the provided hash value and salt are consistent with the
+        /// original hashing process to achieve accurate verification.</remarks>
+        /// <param name="textToCheck">The plain text input to verify against the hash.</param>
+        /// <param name="hashValue">The expected SHA-512 hash value, encoded as a Base64 string.</param>
+        /// <param name="salt">The salt to append to the plain text before hashing.</param>
+        /// <returns><see langword="true"/> if the computed hash of the salted text matches the provided hash value; otherwise,
+        /// <see langword="false"/>.</returns>
+        public Boolean VerifySHA512Hash(String textToCheck, String hashValue, String salt)
+        {
+            Stopwatch stopWatch = Stopwatch.StartNew();
+
+            if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
+            {
+                m_Log.LogTrace($"Begin CryptoAsync [VerifySHA512Hash] method.");
+            }
+
+            Boolean retVal = false;
+
+            SHA512 hasher = null!;
+
+
+            try
+            {
+                String saltedInput = textToCheck + salt;
+
+                hasher = SHA512.Create();
+
+                Byte[] aryStringToHash = Encoding.UTF8.GetBytes(saltedInput);
+
+                Byte[] aryHash = hasher.ComputeHash(aryStringToHash);
+
+                String thisHash = Convert.ToBase64String(aryHash);
+
+                if (thisHash.Equals(hashValue, StringComparison.Ordinal))
+                {
+                    retVal = true;
+                }
+
+            }
+            catch (Exception exUnhandled)
+            {
+                // Add some additional information to the exception's Data dictionary.
+                // Be sure to NOT add anything that would lead to exposing the private key, iv, or unencrypted sensitive data.
+                exUnhandled.Data.AddCheck("textToCheck.Length", textToCheck.Length.ToString());
+                exUnhandled.Data.AddCheck("hashValue.Length", hashValue.Length.ToString());
+                exUnhandled.Data.AddCheck("salt.Length", salt.Length.ToString());
+
+                if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Error) == LogLevelsBitset.Error))
+                {
+                    String strError = exUnhandled.GetFullExceptionMessage(true, true);
+
+                    m_Log.LogError($"Crypto [VerifySHA512Hash] error. [{strError}].");
+                }
+                throw;
+
+            } // END catch
+            finally
+            {
+                if (hasher != null)
+                {
+                    hasher.Clear();
+
+                    hasher.Initialize();
+
+                    hasher.Dispose();
+
+                    hasher = null!;
+                }
+
+                stopWatch.Stop();
+
+                if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
+                {
+                    // This provides the log with method execution time.  Usually only needed for troubleshooting.
+                    TimeSpan elapsedTime = stopWatch.Elapsed;
+                    String logMsg = $"Crypto [VerifySHA512Hash" +
+                        $"] Elapsed time = [{elapsedTime.GetElapsedTimeDisplayString()}].";
+
+                    m_Log.LogTrace(logMsg);
+                }
+
+            }
+
+            return retVal;
+        }  // END public Boolean VerifySHA512Hash(String textToCheck, String hashValue, String salt)
+
+        /// <summary>
+        /// Verifies whether the SHA-512 hash of a serialized object, combined with a specified salt, matches a given
+        /// hash value.
+        /// </summary>
+        /// <remarks>This method serializes the provided object to JSON, appends the specified salt, and
+        /// computes the SHA-512 hash of the resulting string. The computed hash is then compared to the provided
+        /// <paramref name="hashValue"/> using an ordinal string comparison.</remarks>
+        /// <typeparam name="T">The type of the object to be hashed.</typeparam>
+        /// <param name="objectToCheck">The object to serialize and hash.</param>
+        /// <param name="hashValue">The expected SHA-512 hash value, encoded as a Base64 string.</param>
+        /// <param name="salt">The salt to append to the serialized object before hashing.</param>
+        /// <returns><see langword="true"/> if the computed hash matches the provided <paramref name="hashValue"/>; otherwise,
+        /// <see langword="false"/>.</returns>
+        public Boolean VerifyObjectSHA512Hash<T>(T objectToCheck, String hashValue, String salt)
+        {
+            Stopwatch stopWatch = Stopwatch.StartNew();
+
+            if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
+            {
+                m_Log.LogTrace($"Begin CryptoAsync [VerifyObjectSHA512Hash<T>] method.");
+            }
+
+            Boolean retVal = false;
+
+            try
+            {
+                String serializedObject = JsonSerializer.Serialize<T>(objectToCheck, m_JsonSerializeOptions);
+
+                retVal = VerifySHA512Hash(serializedObject, hashValue, salt);
+            }
+            catch (Exception exUnhandled)
+            {
+                // Add some additional information to the exception's Data dictionary.
+                // Be sure to NOT add anything that would lead to exposing the private key, iv, or unencrypted sensitive data.
+                exUnhandled.Data.AddCheck("hashValue.Length", hashValue.Length.ToString());
+                exUnhandled.Data.AddCheck("salt.Length", salt.Length.ToString());
+
+                if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Error) == LogLevelsBitset.Error))
+                {
+                    String strError = exUnhandled.GetFullExceptionMessage(true, true);
+
+                    m_Log.LogError($"Crypto [VerifyObjectSHA512Hash<T>] error. [{strError}].");
+                }
+                throw;
+
+            } // END catch
+            finally
+            {
+
+                stopWatch.Stop();
+
+                if ((m_Log != null) && ((m_LogLevels & LogLevelsBitset.Trace) == LogLevelsBitset.Trace))
+                {
+                    // This provides the log with method execution time.  Usually only needed for troubleshooting.
+                    TimeSpan elapsedTime = stopWatch.Elapsed;
+                    String logMsg = $"Crypto [VerifyObjectSHA512Hash<T>" +
+                        $"] Elapsed time = [{elapsedTime.GetElapsedTimeDisplayString()}].";
+
+                    m_Log.LogTrace(logMsg);
+                }
+
+            }
+
+            return retVal;
+        }
 
         #region IDisposable Implementation
 

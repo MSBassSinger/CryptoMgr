@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
-  <Class Name="Jeff.Jones.CryptoMgr.CryptoAsync">
-    <Position X="1.25" Y="1" Width="10.5" />
+  <Class Name="Jeff.Jones.CryptoMgrTest.TestLogger">
+    <Position X="1.5" Y="1.5" Width="8" />
     <TypeIdentifier>
-      <HashCode>AAAACDAAAaDQBIgKAQIBBAAAAJAAAQAAQQiAgEAAAAA=</HashCode>
-      <FileName>CryptoAsync.cs</FileName>
+      <HashCode>AAAAAAAAAAAAAAAAAAEAAAAAAAgAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>TestLogger.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>

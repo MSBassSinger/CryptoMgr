@@ -142,11 +142,29 @@ namespace Jeff.Jones.CryptoMgr.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The string to hash must have at least non-space 1 character.  It cannot be empty, null, or just whitespace..
+        /// </summary>
+        internal static string HASH_EMPTY_MSG {
+            get {
+                return ResourceManager.GetString("HASH_EMPTY_MSG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encountered an unexpected problem while hashing a string..
         /// </summary>
         internal static string HASH_UNHANDLED_MSG {
             get {
                 return ResourceManager.GetString("HASH_UNHANDLED_MSG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The key supplied was empty, all whitespace, or null.  They key length should match the KeySize value.  Additional information: [{0}]..
+        /// </summary>
+        internal static string PRIVATE_KEY_INVALID_MSG {
+            get {
+                return ResourceManager.GetString("PRIVATE_KEY_INVALID_MSG", resourceCulture);
             }
         }
     }

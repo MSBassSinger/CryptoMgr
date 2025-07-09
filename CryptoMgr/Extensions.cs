@@ -67,6 +67,32 @@ namespace Jeff.Jones.CryptoMgr
     }
 
     /// <summary>
+    /// Specifies the key sizes available for AES encryption.
+    /// </summary>
+    /// <remarks>This enumeration defines the standard key sizes used in AES (Advanced Encryption Standard)
+    /// encryption. Each value represents the bit length of the encryption key.</remarks>
+    public enum AESKeySizeEnum
+    {
+        /// <summary>
+        /// Represents the AES encryption algorithm with a 128-bit key size (16 characters).
+        /// </summary>
+        [JsonStringEnumMemberName("AES128")]
+        AES128 = 128,
+        /// <summary>
+        /// Represents the Advanced Encryption Standard (AES) with a 192-bit key size (24 characters).
+        /// </summary>
+        [JsonStringEnumMemberName("AES192")]
+        AES192 = 192,
+        /// <summary>
+        /// Represents the AES encryption algorithm with a 256-bit key size (32 characters).
+        /// </summary>
+        /// <remarks>AES256 is a symmetric encryption algorithm that uses a 256-bit key for encrypting and
+        /// decrypting data. It is widely used for its strong security and efficiency.</remarks>
+        [JsonStringEnumMemberName("AES256")]
+        AES256 = 256
+    }
+
+    /// <summary>
     /// Provides a set of extension methods and constants for common operations, including exception handling, string
     /// manipulation, and delimiter definitions.
     /// </summary>

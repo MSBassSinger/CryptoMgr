@@ -153,8 +153,16 @@
     <value>Encountered an unexpected problem while encrypting a string.</value>
     <comment>Encountered an unexpected problem while encrypting a string.</comment>
   </data>
+  <data name="HASH_EMPTY_MSG" xml:space="preserve">
+    <value>The string to hash must have at least non-space 1 character.  It cannot be empty, null, or just whitespace.</value>
+    <comment>The string to hash must have at least non-space 1 character.  It cannot be empty, null, or just whitespace.</comment>
+  </data>
   <data name="HASH_UNHANDLED_MSG" xml:space="preserve">
     <value>Encountered an unexpected problem while hashing a string.</value>
     <comment>Encountered an unexpected problem while hashing a string.</comment>
+  </data>
+  <data name="PRIVATE_KEY_INVALID_MSG" xml:space="preserve">
+    <value>The key supplied was empty, all whitespace, or null.  They key length should match the KeySize value.  Additional information: [{0}].</value>
+    <comment>The key supplied was empty, all whitespace, or null.  They key length should match the KeySize value.  Additional information: [{0}].</comment>
   </data>
 </root>

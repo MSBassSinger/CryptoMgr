@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="Jeff.Jones.CryptoMgr.Extensions">
+    <Position X="1.25" Y="2" Width="7" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAgQEAACAAUAAAACBBAAAAAAAAAAQAABAABA=</HashCode>
+      <FileName>Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="Jeff.Jones.CryptoMgr.LogLevelsBitset">
+    <Position X="8.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAAAYAAAAAAABAAAAAAABAAAIAAAAEEAAA=</HashCode>
+      <FileName>Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Jeff.Jones.CryptoMgr.AESKeySizeEnum">
+    <Position X="8.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAACAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Extensions.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

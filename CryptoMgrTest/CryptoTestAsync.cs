@@ -85,7 +85,7 @@ namespace Jeff.Jones.CryptoMgrTest
 
             logger.LogTrace($"Starting CryptoTestAsync.EncryptionTestAsync, iteration # [{testData.Iteration}].");
 
-            CryptoAsync crypto = new CryptoAsync(testData.Key, testData.IV, logger, m_Config, testData.CipherMode);
+            CryptoAsync crypto = new CryptoAsync(testData.Key, testData.IV, logger, m_LogLevels, testData.CipherMode);
 
             String encrypted = await crypto.EncryptStringAESAsync(testData.ValueToEncrypt);
 
@@ -122,11 +122,31 @@ namespace Jeff.Jones.CryptoMgrTest
                 Assert.IsNotNull(encrypted, "Used generated IV.");
             }
 
-            String hash = await crypto.GetSHA512HashAsync(testData.ValueToEncrypt);
 
-            logger.LogInformation($"Hash of [{testData.ValueToEncrypt}] to [{hash}] iteration # [{testData.Iteration}].");
 
-            Assert.IsTrue(hash.Length > 0);
+            HashResponse hash = await crypto.GetSHA512HashAsync(testData.ValueToEncrypt, true);
+
+            logger.LogInformation($"Hash of [{testData.ValueToEncrypt}] to [{hash.Hash}] with random salt [{hash.Salt}], iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hash.Hash.Length > 0, $"Hash [{hash.Hash}] created.");
+
+            Boolean hashMatch = await crypto.VerifySHA512HashAsync(testData.ValueToEncrypt, hash.Hash, hash.Salt);
+
+            Assert.IsTrue(hashMatch, "Hash was verified with salt");
+
+
+            hash = await crypto.GetSHA512HashAsync(testData.ValueToEncrypt, false);
+
+            Assert.IsTrue(hash.Salt.Length == 0, "Salt was not generated, as specified.");
+
+            logger.LogInformation($"Hash of [{testData.ValueToEncrypt}] to [{hash.Hash}] with no random salt, iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hash.Hash.Length > 0, $"Hash [{hash.Hash}] created.");
+
+            hashMatch = await crypto.VerifySHA512HashAsync(testData.ValueToEncrypt, hash.Hash, "");
+
+            Assert.IsTrue(hashMatch, "Hash was verified with no salt.");
+
 
             String decrypted = await crypto.DecryptStringAESAsync(encrypted);
 
@@ -155,9 +175,9 @@ namespace Jeff.Jones.CryptoMgrTest
 
             logger.LogTrace($"Starting CryptoTestAsync.EncryptionTestAsync, iteration # [{testData.Iteration}].");
 
-            CryptoAsync crypto = new CryptoAsync(testData.Key, testData.IV, logger, m_Config, testData.CipherMode);
+            CryptoAsync crypto = new CryptoAsync(testData.Key, testData.IV, logger, m_LogLevels, testData.CipherMode);
 
-            TestPersonClass testBefore = new TestPersonClass()
+            TestPerson testBefore = new TestPerson()
             {
                 FirstName = testData.FirstName,
                 LastName = testData.LastName,
@@ -168,7 +188,7 @@ namespace Jeff.Jones.CryptoMgrTest
             testBefore.MyList.Add("Test1");
             testBefore.MyList.Add("Test2");
 
-            String encrypted = await crypto.EncryptObjectAESAsync<TestPersonClass>(testBefore);
+            String encrypted = await crypto.EncryptObjectAESAsync<TestPerson>(testBefore);
 
             // Use this to stop and capture a new encrypted string value to use above.
             logger.LogDebug($"[testBefore] [{encrypted}]");
@@ -186,11 +206,31 @@ namespace Jeff.Jones.CryptoMgrTest
             //      "Test2"
             //    ]
             //}
-            String hashBefore = await crypto.GetObjectSHA512HashAsync<TestPersonClass>(testBefore);
 
-            Assert.IsTrue(hashBefore.Length > 0);
+            HashResponse hashBefore = await crypto.GetObjectSHA512HashAsync<TestPerson>(testBefore, true);
 
-            TestPersonClass testAfter = await crypto.DecryptObjectAESAsync<TestPersonClass>(encrypted);
+            logger.LogInformation($"Hash of TestBefore object to [{hashBefore.Hash}] with random salt [{hashBefore.Salt}], iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hashBefore.Hash.Length > 0, $"Hash [{hashBefore.Hash}] created.");
+
+            Boolean hashMatch = await crypto.VerifyObjectSHA512HashAsync(testBefore, hashBefore.Hash, hashBefore.Salt);
+
+            Assert.IsTrue(hashMatch, $"Hash [{hashBefore.Hash}] was verified for the TestPerson object with salt");
+
+
+            hashBefore = await crypto.GetObjectSHA512HashAsync<TestPerson>(testBefore, false);
+
+            Assert.IsTrue(hashBefore.Salt.Length == 0, "Salt was not generated, as specified.");
+
+            logger.LogInformation($"Hash of TestPerson object to [{hashBefore.Hash}] with no random salt, iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hashBefore.Hash.Length > 0, $"Hash [{hashBefore.Hash}] created.");
+
+            hashMatch = await crypto.VerifyObjectSHA512HashAsync(testBefore, hashBefore.Hash, hashBefore.Salt);
+
+            Assert.IsTrue(hashMatch, $"Hash [{hashBefore.Hash}] was verified with no salt.");
+
+            TestPerson testAfter = await crypto.DecryptObjectAESAsync<TestPerson>(encrypted);
 
             // Sample JSON after encryption:
             //{
@@ -204,11 +244,28 @@ namespace Jeff.Jones.CryptoMgrTest
             //    ]
             //}
 
-            String hashAfter = await crypto.GetObjectSHA512HashAsync<TestPersonClass>(testAfter);
+            HashResponse hashAfter = await crypto.GetObjectSHA512HashAsync<TestPerson>(testAfter, true);
 
-            Assert.IsTrue(hashAfter.Length > 0);
+            logger.LogInformation($"Hash of TestAfter object to [{hashAfter.Hash}] with random salt [{hashAfter.Salt}], iteration # [{testData.Iteration}].");
 
-            Assert.AreEqual(hashBefore, hashAfter);
+            Assert.IsTrue(hashAfter.Hash.Length > 0, $"Hash [{hashAfter.Hash}] created.");
+
+            hashMatch = await crypto.VerifyObjectSHA512HashAsync(testAfter, hashAfter.Hash, hashAfter.Salt);
+
+            Assert.IsTrue(hashMatch, $"Hash [{hashAfter}] was verified for the after-TestPerson object with salt");
+
+
+            hashAfter = await crypto.GetObjectSHA512HashAsync<TestPerson>(testAfter, false);
+
+            Assert.IsTrue(hashAfter.Salt.Length == 0, "Salt was not generated for the after TestPerson, as specified.");
+
+            logger.LogInformation($"Hash of the after TestPerson object to [{hashAfter.Hash}] with no random salt, iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hashAfter.Hash.Length > 0, $"Hash [{hashAfter.Hash}] created.");
+
+            hashMatch = await crypto.VerifyObjectSHA512HashAsync(testAfter, hashAfter.Hash, hashAfter.Salt);
+
+            Assert.IsTrue(hashMatch, $"Hash [{hashAfter.Hash}] was verified for the after-testPerson with no salt.");
 
             crypto.Dispose();
 
@@ -224,4 +281,5 @@ namespace Jeff.Jones.CryptoMgrTest
         }
 
     }
+
 }
