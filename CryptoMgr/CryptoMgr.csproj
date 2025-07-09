@@ -21,6 +21,7 @@
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageTags>Crypto;AES;.NET 9;Library;SHAHash</PackageTags>
+    <PackageProjectUrl>https://github.com/MSBassSinger/CryptoMgr/blob/master/README.md</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
