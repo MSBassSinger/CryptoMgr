@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using System.Collections;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Jeff.Jones.CryptoMgr
 {
@@ -334,8 +328,10 @@ namespace Jeff.Jones.CryptoMgr
             {
                 retVal += timeSpan.Milliseconds.ToString("000") + " ms, ";
             }
-
-            retVal += timeSpan.Milliseconds.ToString("000") + " ns, ";
+            if (timeSpan.Nanoseconds > 0)
+            {
+                retVal += timeSpan.Nanoseconds.ToString("000") + " ns";
+            }
 
             if (retVal.EndsWith(", "))
             {
@@ -624,21 +620,5 @@ namespace Jeff.Jones.CryptoMgr
                 return ((Char)30).ToString();
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

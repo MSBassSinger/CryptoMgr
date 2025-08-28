@@ -13,6 +13,7 @@
     + [Dispose() and async ValueTask DisposeAsync():](#dispose-and-async-valuetask-disposeasync)
     + [Methods:](#methods-1)
     + [Properties:](#properties-1)
+  * [CryptoMgrService.cs](#CryptoMgrService))
   * [Extensions.cs](#extensionscs)
     + [Enums](#enums)
     + [Static Methods](#static-methods)
@@ -268,6 +269,76 @@ Get/Set.  This specifies the desired key size for encryption and decryption.  Th
     System.Security.Cryptography.CipherMode CipherMode
 
 Get/Set.  This specifies the desired cipher mode for encryption and decryption.  The default is CBC.
+
+## CryptoMgrService.cs
+![CryptoMgrService Class](CryptoMgr/Images/CryptoMgrService.png)]
+
+### Constructor
+   
+There is no public constructor available.  The class is instantiated with a parameterless private constructor on first reference.
+
+Provides a thread-safe service for managing Crypto instances and operations, implemented as thread-safe singleton.
+The benefit of using a singleton is that keeps 1 or more instances of Crypto object(s) in memory for reuse, eliminating the creation and disposal time
+while still be accessible through the application.  Each Crypto instance is uniquely identified by a name, and the service supports adding, retrieving, and
+removing Crypto instances.  The service is thread-safe and ensures proper disposal of resources. Users must call <see cref="Dispose"/> when the service is no
+
+### Properties
+    CryptoMgrService.Instance 
+
+Get only.  This is the only way to get an instance of the CryptoMgrService class.  The instance is created on first reference.
+
+    CryptoMgrService.Instance.CryptoItems
+
+Get only.  This gets a reference to the ConcurrentDictionary<String, Crypto> object that
+contains all the Crypto instances that were added via the AddCrypto() method.
+
+    CryptoMgrService.Instance.Disposing
+
+Returns true or false to indicate if the singleton instance is in the process of disposing.
+
+### Methods
+    CryptoMgrService.Instance.Initialize(Microsoft.Extensions.Logging.ILogger logger = null!, Jeff.Jones.CryptoMgr.LogLevelsBitset logLevels = Extensions.DEFAULT_LOG_LEVELS)
+
+This method initializes the singleton with an ILogger instance and the debug levels desired.
+This method should be called first, before any reference to CryptoMgrService.Instance.
+Since a singleton does not support a parameterized constructor, this method is used to provide 
+the parameters needed for the singleton that are also shared with the child Crypto objects.
+
+    CryptoMgrService.Instance.AddCryptoString name, String privateKey, String iv, CipherMode cipherMode = CipherMode.CBC)
+
+This method adds a Crypto instance to the ConcurrentDictionary by the name provided.
+If that name (case insensitive) already exists, the method wil throw an 
+ArgumentException error.
+
+The privateKey and iv are required as parameters, although iv can be an empty string.  
+If the privateKey is null, empty, or whitespace, an ArgumentNullException is thrown.
+If the iv is null or an empty string, or is less than 16 bytes in length, 
+it is treated as not having been provided, and the iv is automatically generated
+if and when the EncryptStringAES() or EncryptObjectAES\<T>() method is called.
+The generated value may be read via the Crypto.IV property.  The IV property 
+would then reflect the actual iv used.  An iv value improves the security of 
+the encryption, and by using unique iv values, the same data encrypted with the
+same key will have different encrypted values.  The iv value should be recorded for use
+in decryption later.  It is recommended that the user provide both the key and 
+the 16 character iv string.
+
+    CryptoMgrService.Instance.Dispose()
+
+Developers are supposed to call this method when done with this object.
+There is no guarantee when or if the GC will call it, so 
+the developer is responsible to.  GC does NOT clean up unmanaged 
+resources, so we have to clean those up, too.
+
+    CryptoMgrService.Instance.GetCrypto(String name)
+
+Returns a reference to the Crypto object in the ConcurrentDictionary 
+by the name provided.  If the name does not exist, the method returns null.
+
+    CryptoMgrService.Instance.RemoveCrypto(String name)
+
+Removes the named instance of a Crypto object from the ConcurrentDictionary and disposes of it.
+Returns true if successful, false if not removed.
+
 
 ## Extensions.cs
 ![Extensions Class](CryptoMgr/Images/Extensions.png)

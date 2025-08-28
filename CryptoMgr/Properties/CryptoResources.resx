@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CRYPTO_INSTANCE_EXISTS" xml:space="preserve">
+    <value>A cryptographic configuration with the name [{name}] already exists.</value>
+    <comment>A cryptographic configuration with the name [{name}] already exists.</comment>
+  </data>
   <data name="CTOR_UNHANDLED_MSG" xml:space="preserve">
     <value>An unexpected problem occurred while building an object to handle crypotgraphic operations Additional information: [{0}].</value>
     <comment>An unexpected problem occurred while building an object to handle crypotgraphic operations Additional information: [{0}].</comment>

@@ -176,7 +176,6 @@ namespace Jeff.Jones.CryptoMgr
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
 
-
         /// <summary>
         /// Initializes a new instance of the synchronous <see cref="Crypto"/> class with the specified private key and initialization vector (IV).
         /// </summary>

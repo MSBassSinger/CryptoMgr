@@ -97,7 +97,13 @@ namespace Jeff.Jones.CryptoMgrTest
         /// </summary>
         [JsonPropertyName("Iteration")]
         public Int32 Iteration { get; set; } = 0;
- 
+
+        /// <summary>
+        /// Gets or sets the name associated with the current object.
+        /// </summary>
+        [JsonPropertyName("Name")]
+        public String Name { get; set; } = "";
+
 
         /// <summary>
         /// Gets or sets the key associated with the current object.

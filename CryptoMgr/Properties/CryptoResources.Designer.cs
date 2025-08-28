@@ -61,6 +61,15 @@ namespace Jeff.Jones.CryptoMgr.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A cryptographic configuration with the name [{name}] already exists..
+        /// </summary>
+        internal static string CRYPTO_INSTANCE_EXISTS {
+            get {
+                return ResourceManager.GetString("CRYPTO_INSTANCE_EXISTS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected problem occurred while building an object to handle crypotgraphic operations Additional information: [{0}]..
         /// </summary>
         internal static string CTOR_UNHANDLED_MSG {

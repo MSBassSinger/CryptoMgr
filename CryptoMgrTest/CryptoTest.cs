@@ -176,6 +176,92 @@ namespace Jeff.Jones.CryptoMgrTest
             logger = null!;
         }
 
+
+        [DataTestMethod]
+        [DynamicData(nameof(GetTestData))]
+        public void EncryptionServiceTest(TestData testData)
+        {
+            TestLogger logger = new TestLogger();
+
+            logger.LogTrace($"Starting CryptoTest.EncryptionTest, iteration # [{testData.Iteration}].");
+
+            CryptoMgrService.Instance.Initialize(logger, m_LogLevels);
+
+            logger.LogInformation($"Crypto instance named [{testData.Name}] has been added to the cache.");
+
+            CryptoMgrService.Instance.AddCrypto(testData.Name, testData.Key, testData.IV, testData.CipherMode);
+
+            Crypto crypto = CryptoMgrService.Instance.GetCrypto(testData.Name);
+
+            logger.LogInformation($"Crypto instance named [{testData.Name}] in the cache has been accessed.");
+
+            String encrypted = crypto.EncryptStringAES(testData.ValueToEncrypt);
+
+            if (testData.IV.Length == 0)
+            {
+                // Use this to stop and capture a new encrypted string value to use above.
+                logger.LogDebug($"[{testData.Iteration}]-[{testData.ValueToEncrypt}] [{encrypted}] Generated IV [{crypto.IV}]");
+            }
+            else
+            {
+                // Use this to stop and capture a new encrypted string value to use above.
+                logger.LogDebug($"[{testData.Iteration}]-[{testData.ValueToEncrypt}] [{encrypted}]");
+            }
+
+            logger.LogInformation($"Encryption of [{testData.ValueToEncrypt}] to [{encrypted}], expecting [{testData.ExpectedValue}], iteration # [{testData.Iteration}].");
+
+            if (testData.IV.Length > 0)
+            {
+                Assert.AreEqual(testData.ExpectedValue, encrypted);
+            }
+            else
+            {
+                Assert.IsNotNull(encrypted, "Used generated IV.");
+            }
+
+
+            HashResponse hashReponse = crypto.GetSHA512Hash(testData.ValueToEncrypt, true);
+
+            logger.LogInformation($"Hash of [{testData.ValueToEncrypt}] to [{hashReponse.Hash}] with random salt [{hashReponse.Salt}], iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hashReponse.Hash.Length > 0, $"Hash [{hashReponse.Hash}] created.");
+
+            Boolean hashMatch = crypto.VerifySHA512Hash(testData.ValueToEncrypt, hashReponse.Hash, hashReponse.Salt);
+
+            Assert.IsTrue(hashMatch, "Hash was verified with salt");
+
+
+            hashReponse = crypto.GetSHA512Hash(testData.ValueToEncrypt, false);
+
+            Assert.IsTrue(hashReponse.Salt.Length == 0, "Salt was not generated, as specified.");
+
+            logger.LogInformation($"Hash of [{testData.ValueToEncrypt}] to [{hashReponse.Hash}] with no random salt, iteration # [{testData.Iteration}].");
+
+            Assert.IsTrue(hashReponse.Hash.Length > 0, $"Hash [{hashReponse.Hash}] created.");
+
+            hashMatch = crypto.VerifySHA512Hash(testData.ValueToEncrypt, hashReponse.Hash, "");
+
+            Assert.IsTrue(hashMatch, "Hash was verified with no salt.");
+
+
+
+            String decrypted = crypto.DecryptStringAES(encrypted);
+
+            logger.LogInformation($"Decryption of [{testData.ValueToEncrypt}] to [{decrypted}], iteration # [{testData.Iteration}].");
+
+            Assert.AreEqual(testData.ValueToEncrypt, decrypted);
+
+            CryptoMgrService.Instance.RemoveCrypto(testData.Name);
+
+            logger.LogInformation($"Crypto instance named [{testData.Name}] has been removed from the cache.");
+
+            crypto = null!;
+
+            logger.LogTrace($"Exiting CryptoTest.EncryptionTest, iteration # [{testData.Iteration}].");
+
+            logger = null!;
+        }
+
         /// <summary>
         /// Tests encryption, decryption, and hashing of an object using the AES algorithm in CBC mode.
         /// </summary>
