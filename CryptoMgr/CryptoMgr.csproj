@@ -1,80 +1,84 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <RootNamespace>Jeff.Jones.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-    <AssemblyName>Jeff.Jones.$(MSBuildProjectName)</AssemblyName>
-    <ApplicationIcon>Images\circlej.ico</ApplicationIcon>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>Crypto Manager</Title>
-    <Authors>Jeff Jones</Authors>
-    <Company>Jeff Jones</Company>
-    <Description>Library for AES encryption and SHA512 hash.  Has a synchronous class and an asynchronous class.</Description>
-    <Copyright>Copyright © 2025 Jeff Jones.  All rights reserved.</Copyright>
-    <RepositoryUrl>https://github.com/MSBassSinger/CryptoMgr</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageIcon>Images\circlej.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageTags>Crypto;AES;.NET 9;Library;SHAHash</PackageTags>
-    <PackageProjectUrl>https://github.com/MSBassSinger/CryptoMgr/blob/master/README.md</PackageProjectUrl>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>Jeff.Jones.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<AssemblyName>Jeff.Jones.$(MSBuildProjectName)</AssemblyName>
+		<ApplicationIcon>Images\circlej.ico</ApplicationIcon>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>Crypto Manager</Title>
+		<Authors>Jeff Jones</Authors>
+		<Company>Jeff Jones</Company>
+		<Description>Library for AES encryption and SHA512 hash.  Has a synchronous class and an asynchronous class, and a thread-safe singleton to act as a collection of 1 to n instances of the Crypto class already instantiated, to reduce creation and destruction time when performing a number of encryption and decryption operations across threads and tasks.</Description>
+		<Copyright>Copyright © 2025 Jeff Jones.  All rights reserved.</Copyright>
+		<RepositoryUrl>https://github.com/MSBassSinger/CryptoMgr</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageIcon>Images\circlej.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageTags>Crypto;AES;.NET 9;Library;SHAHash</PackageTags>
+		<PackageProjectUrl>https://github.com/MSBassSinger/CryptoMgr/blob/master/README.md</PackageProjectUrl>
+		<PackageVersion>1.0.1.0</PackageVersion>
+		<AssemblyVersion>1.0.1.0</AssemblyVersion>
+		<FileVersion>1.0.1.0</FileVersion>
+		<Version>1.0.1</Version>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="Images\circlej.ico" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="Images\circlej.ico" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\LICENSE.txt">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Properties\CryptoResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CryptoResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Properties\CryptoResources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>CryptoResources.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\CryptoResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CryptoResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Properties\CryptoResources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>CryptoResources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="Images\circlej.ico">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="Images\circlej.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="Images\circlej.ico">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Update="Images\circlej.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Microsoft.Extensions.Configuration" />
-    <Using Include="Microsoft.Extensions.Logging" />
-    <Using Include="Microsoft.Extensions.Logging.Abstractions" />
-  </ItemGroup>
+	<ItemGroup>
+		<Using Include="Microsoft.Extensions.Configuration" />
+		<Using Include="Microsoft.Extensions.Logging" />
+		<Using Include="Microsoft.Extensions.Logging.Abstractions" />
+	</ItemGroup>
 
 </Project>
